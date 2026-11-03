@@ -224,3 +224,12 @@ In compliance with the take-home test requirements, **Agentic AI** was leveraged
 5. **Quality Verification**:
    - The agent validated compilation, test execution, and Git identity integrity autonomously before submission.
 
+
+
+---
+
+## 6. Repository Links & Submission
+
+- **Candidate**: Fredli Fourqoni (<fredlifourqoni999@gmail.com>)
+- **Backend Repository**: [https://github.com/fredli4qooni/be-track-rendering-tsd.git](https://github.com/fredli4qooni/be-track-rendering-tsd.git)
+- **Frontend Repository**: [https://github.com/fredli4qooni/fe-track-rendering-tsd.git](https://github.com/fredli4qooni/fe-track-rendering-tsd.git)
