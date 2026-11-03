@@ -1,3 +1,7 @@
+# Go Workspaces
+go.work
+go.work.sum
+
 # Binaries
 bin/
 dist/
