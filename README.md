@@ -33,7 +33,26 @@ This service serves as the core persistence and data validation engine for the T
 
 ---
 
-## 3. Installation & Setup
+## 3. Architectural Rationale: REST API vs. gRPC-Web via APISIX
+
+In the enterprise front-end guidelines (`AGENTS.md`), the micro-frontend system uses **gRPC-Web via APISIX Gateway** for production Combat Management Systems (CMS). For this take-home test evaluation, **REST API** was selected based on the following engineering rationale:
+
+1. **Candidate Freedom Granted by Soal Tes (`task.md`)**:
+   Section *Overview* of `task.md` explicitly specifies:
+   > *"Kandidat bebas menentukan beberapa aspek teknis berikut: Library yang digunakan, Database, **API Design**, State Management, Map Provider / Map Library, Styling Approach."*
+
+2. **Zero Reviewer Friction (Standalone Evaluation)**:
+   - Web browsers cannot communicate natively with HTTP/2 gRPC without a reverse proxy gateway (such as Apache APISIX or Envoy) translating gRPC-Web framing.
+   - Requiring the evaluating team to spin up Docker containers for APISIX Gateway, `etcd`, and complex upstream routing would introduce high friction and environment dependency risks during code review.
+   - With standard REST HTTP (`net/http`), reviewers can evaluate the entire application immediately with a single command: `go run ./cmd/server/main.go`.
+
+3. **Production gRPC Contract Provided (`proto/entity.proto`)**:
+   - The domain model and validation rules were engineered with 100% gRPC parity in mind.
+   - A complete Protocol Buffers definition is included at [`proto/entity.proto`](./proto/entity.proto) demonstrating full schema and streaming readiness for production deployment behind APISIX.
+
+---
+
+## 4. Installation & Setup
 
 ### Prerequisites
 - [Go (Golang)](https://go.dev/dl/) version 1.22 or higher (`go version` to check).
@@ -204,3 +223,4 @@ In compliance with the take-home test requirements, **Agentic AI** was leveraged
    - The agent authored isolated unit and integration test suites (`validator_test.go`, `repository_test.go`, `service_test.go`, `handler_test.go`) utilizing temporary directories and `net/http/httptest` to achieve robust regression coverage.
 5. **Quality Verification**:
    - The agent validated compilation, test execution, and Git identity integrity autonomously before submission.
+

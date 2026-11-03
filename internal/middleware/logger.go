@@ -28,3 +28,4 @@ func RequestLogger(next http.Handler) http.Handler {
 		log.Printf("[HTTP] %s %s - %d (%v)", r.Method, r.URL.Path, wrapped.statusCode, latency)
 	})
 }
+

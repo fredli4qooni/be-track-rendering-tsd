@@ -64,3 +64,4 @@ func migrate(db *sql.DB) error {
 	_, err := db.ExecContext(context.Background(), query)
 	return err
 }
+

@@ -227,3 +227,4 @@ func generateCallsign(entityType int) string {
 		return fmt.Sprintf("TRK-%03d", num)
 	}
 }
+

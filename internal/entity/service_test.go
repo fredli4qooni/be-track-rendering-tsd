@@ -80,3 +80,4 @@ func TestServiceValidationAndSeed(t *testing.T) {
 		t.Fatalf("DeleteEntity() error = %v", err)
 	}
 }
+

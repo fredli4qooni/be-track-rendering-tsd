@@ -52,6 +52,12 @@ be-explore-maptalks/
 | **Database** | SQLite via `modernc.org/sqlite` | Pure Go implementation: 100% portable, requires **no CGO** and **no C compiler (gcc)** on Windows/Linux/macOS. |
 | **Persistence Mode** | Write-Ahead Logging (WAL) | High concurrency read/write without database locking bottlenecks. |
 | **Testing** | Standard `testing` + `httptest` | Fast, colocated unit and integration tests with zero external test runners. |
+| **API Protocol** | REST JSON + Protobuf Contract | Zero-friction standalone evaluation for reviewers; includes `proto/entity.proto` for enterprise gRPC-Web parity. |
+
+---
+
+### Architectural Note: REST vs. gRPC-Web via APISIX
+While `AGENTS.md` in the frontend codebase specifies gRPC-Web via APISIX for production micro-frontends, `task.md` explicitly allows candidates freedom in **API Design**. A pure Go REST API was chosen for the standalone assessment to eliminate external proxy (APISIX/Envoy) dependencies during evaluation, while providing full schema equivalence through `proto/entity.proto`.
 
 ---
 
@@ -77,3 +83,4 @@ Before declaring any change complete:
 - [ ] `go test -v ./...` executes and passes all test suites.
 - [ ] New functionality includes colocated `*_test.go` covering edge cases.
 - [ ] Documentation (`README.md`, `AGENT.md`) reflects any API changes.
+

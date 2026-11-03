@@ -151,3 +151,4 @@ func FormatValidationError(err error) string {
 	}
 	return fmt.Sprintf("Validasi gagal: %s", err.Error())
 }
+

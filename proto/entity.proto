@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package leniot.tsd.v1;
+
+option go_package = "be-explore-maptalks/proto/v1;tsdv1";
+
+// EntityService defines the gRPC contract for tactical entity management and streaming.
+service EntityService {
+  // Get all entities with optional status and type filtering.
+  rpc ListEntities(ListEntitiesRequest) returns (ListEntitiesResponse);
+
+  // Get a single entity by its ID.
+  rpc GetEntity(GetEntityRequest) returns (EntityResponse);
+
+  // Create a new entity with boundary validation.
+  rpc CreateEntity(CreateEntityRequest) returns (EntityResponse);
+
+  // Update existing entity properties.
+  rpc UpdateEntity(UpdateEntityRequest) returns (EntityResponse);
+
+  // Delete an entity by its ID.
+  rpc DeleteEntity(DeleteEntityRequest) returns (DeleteEntityResponse);
+
+  // Stream tactical entity telemetry updates in real-time.
+  rpc StreamEntityUpdates(StreamEntityUpdatesRequest) returns (stream EntityUpdateEvent);
+}
+
+enum EntityStatus {
+  ENTITY_STATUS_UNSPECIFIED = 0;
+  ENTITY_STATUS_ACTIVE = 1;
+  ENTITY_STATUS_STANDBY = 2;
+  ENTITY_STATUS_ENGAGED = 3;
+  ENTITY_STATUS_INACTIVE = 4;
+  ENTITY_STATUS_DESTROYED = 5;
+}
+
+enum EntityType {
+  ENTITY_TYPE_FRIENDLY_SUSPECTED = 0;
+  ENTITY_TYPE_HOSTILE_CONFIRMED = 1;
+  ENTITY_TYPE_HOSTILE_UNCONFIRMED = 2;
+  ENTITY_TYPE_SUPPORT_POINT = 3;
+  ENTITY_TYPE_UNKNOWN_SURFACE = 4;
+  ENTITY_TYPE_WAYPOINT = 5;
+}
+
+message Entity {
+  int64 id = 1;
+  string name = 2;
+  string callsign = 3;
+  EntityType type = 4;
+  EntityStatus status = 5;
+  double latitude = 6;
+  double longitude = 7;
+  double altitude = 8;
+  double course = 9;   // 0 - 360 degrees
+  double speed = 10;   // knots
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message ListEntitiesRequest {
+  string status = 1;
+  optional int32 type = 2;
+}
+
+message ListEntitiesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Entity entities = 3;
+}
+
+message GetEntityRequest {
+  int64 id = 1;
+}
+
+message CreateEntityRequest {
+  string name = 1;
+  string callsign = 2;
+  int32 type = 3;
+  string status = 4;
+  double latitude = 5;
+  double longitude = 6;
+  double altitude = 7;
+  double course = 8;
+  double speed = 9;
+}
+
+message UpdateEntityRequest {
+  int64 id = 1;
+  optional string name = 2;
+  optional string callsign = 3;
+  optional int32 type = 4;
+  optional string status = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  optional double altitude = 8;
+  optional double course = 9;
+  optional double speed = 10;
+}
+
+message DeleteEntityRequest {
+  int64 id = 1;
+}
+
+message DeleteEntityResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message EntityResponse {
+  bool success = 1;
+  string message = 2;
+  Entity data = 3;
+}
+
+message StreamEntityUpdatesRequest {
+  repeated int64 entity_ids = 1;
+}
+
+message EntityUpdateEvent {
+  int64 id = 1;
+  double latitude = 2;
+  double longitude = 3;
+  double course = 4;
+  double speed = 5;
+  int64 timestamp = 6;
+}

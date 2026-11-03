@@ -132,3 +132,4 @@ func TestRepositoryBatchCreate(t *testing.T) {
 		t.Errorf("expected count 3, got %d", count)
 	}
 }
+
