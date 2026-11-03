@@ -2,10 +2,6 @@
 
 Instructions for AI coding agents and human developers maintaining the Go backend service.
 
-**Author:** Fredli Fourqoni  
-**Role:** Software Developer  
-**Email:** fredlifourqoni999@gmail.com  
-**Project:** Take-Home Test — Software Developer (PT Len Innovation Technology)
 
 ---
 
@@ -57,7 +53,7 @@ be-explore-maptalks/
 ---
 
 ### Architectural Note: REST vs. gRPC-Web via APISIX
-While `AGENTS.md` in the frontend codebase specifies gRPC-Web via APISIX for production micro-frontends, `task.md` explicitly allows candidates freedom in **API Design**. A pure Go REST API was chosen for the standalone assessment to eliminate external proxy (APISIX/Envoy) dependencies during evaluation, while providing full schema equivalence through `proto/entity.proto`.
+While production micro-frontends specify gRPC-Web via APISIX, a pure Go REST API was chosen for the standalone assessment to eliminate external proxy (APISIX/Envoy) dependencies during evaluation, while providing full schema equivalence through `proto/entity.proto`.
 
 ---
 
@@ -70,9 +66,6 @@ While `AGENTS.md` in the frontend codebase specifies gRPC-Web via APISIX for pro
    - Speed: \([0, 120]\) knots.
    - Names: \([2, 60]\) characters, whitespace-trimmed.
 3. **Colocated Testing**: Every package must maintain colocated `*_test.go` files.
-4. **Author Attribution**: All commits, documentation, and metadata must strictly reflect:
-   - Name: `Fredli Fourqoni`
-   - Email: `fredlifourqoni999@gmail.com`
 
 ---
 

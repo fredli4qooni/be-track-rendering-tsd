@@ -2,10 +2,6 @@
 
 A high-performance, modular REST API service written in **Go (Golang)** for managing and persisting real-world and tactical entities with geospatial coordinates.
 
-**Candidate:** Fredli Fourqoni  
-**Email:** fredlifourqoni999@gmail.com  
-**Position:** Software Developer  
-**Company:** PT Len Innovation Technology (Len-IOT)
 
 ---
 
@@ -37,16 +33,12 @@ This service serves as the core persistence and data validation engine for the T
 
 In the enterprise front-end guidelines (`AGENTS.md`), the micro-frontend system uses **gRPC-Web via APISIX Gateway** for production Combat Management Systems (CMS). For this take-home test evaluation, **REST API** was selected based on the following engineering rationale:
 
-1. **Candidate Freedom Granted by Soal Tes (`task.md`)**:
-   Section *Overview* of `task.md` explicitly specifies:
-   > *"Kandidat bebas menentukan beberapa aspek teknis berikut: Library yang digunakan, Database, **API Design**, State Management, Map Provider / Map Library, Styling Approach."*
-
-2. **Zero Reviewer Friction (Standalone Evaluation)**:
+1. **Zero Reviewer Friction (Standalone Evaluation)**:
    - Web browsers cannot communicate natively with HTTP/2 gRPC without a reverse proxy gateway (such as Apache APISIX or Envoy) translating gRPC-Web framing.
    - Requiring the evaluating team to spin up Docker containers for APISIX Gateway, `etcd`, and complex upstream routing would introduce high friction and environment dependency risks during code review.
    - With standard REST HTTP (`net/http`), reviewers can evaluate the entire application immediately with a single command: `go run ./cmd/server/main.go`.
 
-3. **Production gRPC Contract Provided (`proto/entity.proto`)**:
+2. **Production gRPC Contract Provided (`proto/entity.proto`)**:
    - The domain model and validation rules were engineered with 100% gRPC parity in mind.
    - A complete Protocol Buffers definition is included at [`proto/entity.proto`](./proto/entity.proto) demonstrating full schema and streaming readiness for production deployment behind APISIX.
 
@@ -228,8 +220,7 @@ In compliance with the take-home test requirements, **Agentic AI** was leveraged
 
 ---
 
-## 6. Repository Links & Submission
+## 6. Repository Links
 
-- **Candidate**: Fredli Fourqoni (<fredlifourqoni999@gmail.com>)
 - **Backend Repository**: [https://github.com/fredli4qooni/be-track-rendering-tsd.git](https://github.com/fredli4qooni/be-track-rendering-tsd.git)
 - **Frontend Repository**: [https://github.com/fredli4qooni/fe-track-rendering-tsd.git](https://github.com/fredli4qooni/fe-track-rendering-tsd.git)
