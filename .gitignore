@@ -1,0 +1,29 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Database files
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.db-journal
+
+# Environment variables
+.env
+.env.local
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
