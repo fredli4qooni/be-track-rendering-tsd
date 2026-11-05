@@ -83,3 +83,4 @@ func migratePostgres(db *sql.DB) error {
 
 	return nil
 }
+
