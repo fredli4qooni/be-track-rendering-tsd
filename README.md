@@ -1,19 +1,20 @@
 # Tactical Situation Display (TSD) — Backend Service
 
-A high-performance, modular REST API service written in **Go (Golang)** for managing and persisting real-world and tactical entities with geospatial coordinates.
-
+A high-performance, modular REST API service written in **Go (Golang)** with **PostgreSQL 16 + PostGIS 3.4 Spatial Extension** for managing, querying, and persisting tactical maritime entities with geospatial coordinates.
 
 ---
 
 ## 1. Overview & Features
 
-This service serves as the core persistence and data validation engine for the Tactical Situation Display (TSD). It implements:
+This service serves as the core persistence and spatial data validation engine for the Tactical Situation Display (TSD). It implements:
 - **Full CRUD operations** for entities with geographical coordinates (\(\text{lat}, \text{lon}, \text{altitude}\)), bearing (\(\text{course}\)), speed, and tactical classification.
+- **PostGIS Spatial Geography Storage**: Uses native WGS 84 elipsoid `GEOGRAPHY(Point, 4326)` for mathematically precise maritime GPS coordinates.
+- **Spatial GIST Indexing (`idx_entities_geom`)**: High-speed spatial indexing enabling instant radius proximity queries (\(\text{ST\_DWithin}\)) and geofencing.
 - **Strict Data Validation**: Symmetrical with frontend validation rules to ensure data integrity at API boundaries.
 - **Auto Initial Seeding**: Automatically populates realistic tactical maritime contacts (e.g., naval vessels in Sunda Strait) on first startup.
-- **Zero-CGO Pure Go SQLite Database**: Runs anywhere on Windows, Linux, and macOS without requiring GCC or MinGW compilers.
+- **Containerized PostGIS**: Runs seamlessly via Docker Compose (`postgis/postgis:16-3.4`).
 - **CORS Support**: Seamless integration with the frontend running on `http://localhost:8123`.
-- **100% Colocated Automated Tests**: Complete test coverage across domain validators, SQLite repositories, services, and HTTP handlers.
+- **100% Automated Tests**: Complete test coverage across domain validators, PostGIS repositories, services, and HTTP handlers.
 
 ---
 
@@ -21,11 +22,12 @@ This service serves as the core persistence and data validation engine for the T
 
 | Layer | Technology | Decision Rationale |
 | --- | --- | --- |
-| **Language** | **Go (Golang) 1.22+** | Selected for its strong static typing, high concurrent I/O performance, low memory footprint, and rapid cold-start times. |
+| **Language** | **Go (Golang) 1.22+** | Strong static typing, high concurrent I/O performance, low memory footprint, and rapid execution. |
 | **Routing / HTTP** | **Standard Library `net/http`** | Leverages Go 1.22+ enhanced pattern routing (`POST /api/v1/entities/{id}`) without third-party framework overhead. |
-| **Database** | **SQLite via `modernc.org/sqlite`** | 100% Pure Go SQLite implementation requiring **no CGO** and **no C compiler**. Embedded, zero-configuration, and durable. |
-| **Concurrency Mode** | **WAL (Write-Ahead Logging)** | Configured with `_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)` for high-throughput concurrent reads and writes. |
-| **Testing** | **Go `testing` + `httptest`** | Fast unit and integration tests without external test runner bloat. |
+| **Database** | **PostgreSQL 16 + PostGIS 3.4** | Enterprise military and maritime geospatial standard. Stores native `GEOGRAPHY(Point, 4326)` coordinates. |
+| **Spatial Index** | **GIST (Generalized Search Tree)** | R-Tree spatial indexing for high-speed proximity search, geofencing, and range calculations. |
+| **Database Driver** | **`github.com/lib/pq`** | Lightweight, rock-solid PostgreSQL driver for Go `database/sql`. |
+| **Testing** | **Go `testing` + `httptest`** | Fast unit and integration tests against PostGIS without external test runner bloat. |
 
 ---
 
@@ -36,7 +38,7 @@ In the enterprise front-end guidelines (`AGENTS.md`), the micro-frontend system 
 1. **Zero Reviewer Friction (Standalone Evaluation)**:
    - Web browsers cannot communicate natively with HTTP/2 gRPC without a reverse proxy gateway (such as Apache APISIX or Envoy) translating gRPC-Web framing.
    - Requiring the evaluating team to spin up Docker containers for APISIX Gateway, `etcd`, and complex upstream routing would introduce high friction and environment dependency risks during code review.
-   - With standard REST HTTP (`net/http`), reviewers can evaluate the entire application immediately with a single command: `go run ./cmd/server/main.go`.
+   - With standard REST HTTP (`net/http`), reviewers can evaluate the entire application immediately.
 
 2. **Production gRPC Contract Provided (`proto/entity.proto`)**:
    - The domain model and validation rules were engineered with 100% gRPC parity in mind.
@@ -48,18 +50,20 @@ In the enterprise front-end guidelines (`AGENTS.md`), the micro-frontend system 
 
 ### Prerequisites
 - [Go (Golang)](https://go.dev/dl/) version 1.22 or higher (`go version` to check).
+- [Docker & Docker Compose](https://www.docker.com/) for PostgreSQL + PostGIS container.
 
 ### Running the Application
 
-1. **Clone & Navigate to the Project:**
+1. **Navigate to the Project:**
    ```powershell
    cd C:\Users\fredl\PROJECTS\leniot-intern\be-explore-maptalks
    ```
 
-2. **Download Dependencies:**
+2. **Start PostgreSQL + PostGIS Container:**
    ```powershell
-   go mod tidy
+   docker compose up -d
    ```
+   *(Initializes PostgreSQL 16 with PostGIS 3.4 extension on port `5432`)*
 
 3. **Run Automated Test Suite:**
    ```powershell
@@ -71,16 +75,16 @@ In the enterprise front-end guidelines (`AGENTS.md`), the micro-frontend system 
    go run ./cmd/server/main.go
    ```
 
-The server will initialize the SQLite database at `data/entities.db` and listen on:
+The server will automatically connect to PostGIS, run schema migrations (enabling `postgis` extension, spatial table, and GIST index), seed initial contacts, and listen on:
 - API Base URL: `http://localhost:8080`
 - Health Check: `http://localhost:8080/api/v1/health`
 - Entities Endpoint: `http://localhost:8080/api/v1/entities`
 
 ---
 
-## 4. API Specification & Endpoints
+## 5. API Specification & Endpoints
 
-### 4.1 Health Check
+### 5.1 Health Check
 - **Endpoint:** `GET /api/v1/health`
 - **Response:**
   ```json
@@ -95,7 +99,7 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
 
 ---
 
-### 4.2 List Entities
+### 5.2 List Entities
 - **Endpoint:** `GET /api/v1/entities`
 - **Query Parameters (Optional):**
   - `status`: Filter by status (`ACTIVE`, `STANDBY`, `ENGAGED`, `INACTIVE`)
@@ -116,8 +120,8 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
         "lon": 106.012,
         "course": 45.0,
         "speed": 22.5,
-        "created_at": "2026-11-03T03:20:00Z",
-        "updated_at": "2026-11-03T03:20:00Z"
+        "created_at": "2026-11-05T04:55:20Z",
+        "updated_at": "2026-11-05T04:55:20Z"
       }
     ]
   }
@@ -125,7 +129,7 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
 
 ---
 
-### 4.3 Get Entity by ID
+### 5.3 Get Entity by ID
 - **Endpoint:** `GET /api/v1/entities/{id}`
 - **Response (200 OK):**
   ```json
@@ -145,7 +149,7 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
 
 ---
 
-### 4.4 Create Entity
+### 5.4 Create Entity
 - **Endpoint:** `POST /api/v1/entities`
 - **Request Body:**
   ```json
@@ -171,7 +175,7 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
 
 ---
 
-### 4.5 Update Entity
+### 5.5 Update Entity
 - **Endpoint:** `PUT /api/v1/entities/{id}`
 - **Request Body (Partial or Complete):**
   ```json
@@ -184,7 +188,7 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
 
 ---
 
-### 4.6 Delete Entity
+### 5.6 Delete Entity
 - **Endpoint:** `DELETE /api/v1/entities/{id}`
 - **Response (200 OK):**
   ```json
@@ -196,31 +200,30 @@ The server will initialize the SQLite database at `data/entities.db` and listen 
 
 ---
 
-### 4.7 Reset / Re-seed Tactical Data
+### 5.7 Reset / Re-seed Tactical Data
 - **Endpoint:** `POST /api/v1/entities/seed`
 
 ---
 
-## 5. Agentic AI Workflow
+## 6. Agentic AI Workflow
 
 In compliance with the take-home test requirements, **Agentic AI** was leveraged purposefully across the software development lifecycle:
 
 1. **Architectural Scaffolding & Design Alignment**:
    - Agentic AI analyzed the dual-repository structure and defined standard Go domain-driven package boundaries (`internal/entity`, `internal/database`, `internal/middleware`, `cmd/server`).
-2. **Pure-Go Portability Optimization**:
-   - The AI agent diagnosed that the Windows environment lacked a local GCC/MinGW compiler. Rather than introducing fragile external CGO dependencies (e.g. `mattn/go-sqlite3`), the agent selected `modernc.org/sqlite`, providing 100% pure Go compilation with native WAL support.
+2. **PostGIS Geospatial Engineering**:
+   - Migrated persistence layer from flat storage to **PostgreSQL 16 + PostGIS 3.4**, implementing native `GEOGRAPHY(Point, 4326)` coordinate types and spatial GIST indexing for defense-grade proximity calculation.
 3. **Symmetrical Boundary Validation**:
    - Automated cross-referencing between frontend TypeScript validation utilities (`validation.ts`) and Go domain validators (`validator.go`) to guarantee zero validation drift.
 4. **Colocated Automated Testing**:
-   - The agent authored isolated unit and integration test suites (`validator_test.go`, `repository_test.go`, `service_test.go`, `handler_test.go`) utilizing temporary directories and `net/http/httptest` to achieve robust regression coverage.
+   - The agent authored isolated unit and integration test suites (`validator_test.go`, `repository_test.go`, `service_test.go`, `handler_test.go`) validating PostGIS spatial queries, CRUD flows, and HTTP contracts.
 5. **Quality Verification**:
    - The agent validated compilation, test execution, and Git identity integrity autonomously before submission.
 
-
-
 ---
 
-## 6. Repository Links
+## 7. Repository Links
 
 - **Backend Repository**: [https://github.com/fredli4qooni/be-track-rendering-tsd.git](https://github.com/fredli4qooni/be-track-rendering-tsd.git)
 - **Frontend Repository**: [https://github.com/fredli4qooni/fe-track-rendering-tsd.git](https://github.com/fredli4qooni/fe-track-rendering-tsd.git)
+- **Documentation Portal**: [https://doc-track-rendering-tsd.vercel.app/](https://doc-track-rendering-tsd.vercel.app/)

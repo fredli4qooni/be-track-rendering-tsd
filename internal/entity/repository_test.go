@@ -2,7 +2,7 @@ package entity_test
 
 import (
 	"context"
-	"path/filepath"
+	"os"
 	"testing"
 
 	"be-explore-maptalks/internal/database"
@@ -11,15 +11,21 @@ import (
 
 func setupTestDB(t *testing.T) entity.Repository {
 	t.Helper()
-	tempDir := t.TempDir()
-	dbPath := filepath.Join(tempDir, "test_entities.db")
-
-	db, err := database.InitDB(dbPath)
-	if err != nil {
-		t.Fatalf("failed to init test db: %v", err)
+	connStr := os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		connStr = "postgres://tsd_user:tsd_password@localhost:5432/tsd_db?sslmode=disable"
 	}
 
+	db, err := database.InitPostgres(connStr)
+	if err != nil {
+		t.Fatalf("failed to init test postgres postgis db: %v", err)
+	}
+
+	// Clean table for isolated test run
+	_, _ = db.Exec("TRUNCATE TABLE entities RESTART IDENTITY CASCADE;")
+
 	t.Cleanup(func() {
+		_, _ = db.Exec("TRUNCATE TABLE entities RESTART IDENTITY CASCADE;")
 		db.Close()
 	})
 
@@ -133,3 +139,33 @@ func TestRepositoryBatchCreate(t *testing.T) {
 	}
 }
 
+func TestRepositoryPostGISSpatialRadius(t *testing.T) {
+	repo := setupTestDB(t)
+	ctx := context.Background()
+
+	// Insert targets at different distances from center (-5.912, 106.012)
+	// Target 1: very close (~1-2 NM)
+	t1 := &entity.Entity{Name: "Close Patrol", Callsign: "CLS-1", Latitude: -5.92, Longitude: 106.02, Status: entity.StatusActive}
+	// Target 2: far away (>100 NM, in Java Sea)
+	t2 := &entity.Entity{Name: "Distant Vessel", Callsign: "DST-2", Latitude: -3.5, Longitude: 108.5, Status: entity.StatusActive}
+
+	if err := repo.Create(ctx, t1); err != nil {
+		t.Fatalf("Create t1 error: %v", err)
+	}
+	if err := repo.Create(ctx, t2); err != nil {
+		t.Fatalf("Create t2 error: %v", err)
+	}
+
+	// Query within 20 Nautical Miles
+	nearby, err := repo.GetWithinRadius(ctx, -5.912, 106.012, 20.0)
+	if err != nil {
+		t.Fatalf("GetWithinRadius error: %v", err)
+	}
+
+	if len(nearby) != 1 {
+		t.Fatalf("expected 1 nearby target within 20 NM, got %d", len(nearby))
+	}
+	if nearby[0].Name != "Close Patrol" {
+		t.Errorf("expected 'Close Patrol', got %q", nearby[0].Name)
+	}
+}

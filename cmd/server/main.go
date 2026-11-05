@@ -21,18 +21,19 @@ func main() {
 		port = "8080"
 	}
 
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "data/entities.db"
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://tsd_user:tsd_password@localhost:5432/tsd_db?sslmode=disable"
 	}
 
 	log.Println("==================================================")
 	log.Println(" Tactical Situation Display (TSD) - Backend API ")
+	log.Println(" Engine: PostgreSQL 16 + PostGIS 3.4 Spatial     ")
 	log.Println(" Author: Fredli Fourqoni                          ")
 	log.Println("==================================================")
 
-	// 1. Initialize SQLite Database
-	db, err := database.InitDB(dbPath)
+	// 1. Initialize PostgreSQL + PostGIS Database
+	db, err := database.InitPostgres(databaseURL)
 	if err != nil {
 		log.Fatalf("[FATAL] Database initialization failed: %v", err)
 	}

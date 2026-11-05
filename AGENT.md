@@ -2,7 +2,6 @@
 
 Instructions for AI coding agents and human developers maintaining the Go backend service.
 
-
 ---
 
 ## 1. System Architecture & Boundaries
@@ -16,13 +15,13 @@ be-explore-maptalks/
 │       └── main.go          # Application entrypoint & graceful shutdown
 ├── internal/
 │   ├── database/
-│   │   └── sqlite.go        # SQLite initialization, WAL pragma & auto-migration
+│   │   └── postgres.go      # PostgreSQL + PostGIS initialization & spatial auto-migration
 │   ├── entity/
 │   │   ├── model.go         # Domain models, enums & API response structs
 │   │   ├── validator.go     # Strict input boundary validation (matches frontend rules)
 │   │   ├── validator_test.go# Unit tests for domain validations
-│   │   ├── repository.go    # Data access layer & SQL queries
-│   │   ├── repository_test.go# In-memory database integration tests
+│   │   ├── repository.go    # Data access layer & PostGIS spatial queries (ST_MakePoint, ST_DWithin)
+│   │   ├── repository_test.go# PostGIS spatial and CRUD integration tests
 │   │   ├── service.go       # Core business logic & default seed generator
 │   │   ├── service_test.go  # Business logic tests
 │   │   ├── handler.go       # HTTP handlers (Go 1.22+ native pattern routing)
@@ -30,7 +29,7 @@ be-explore-maptalks/
 │   └── middleware/
 │       ├── cors.go          # CORS middleware for frontend communication
 │       └── logger.go        # HTTP request structured logging
-├── data/                    # SQLite database storage (gitignored)
+├── docker-compose.yml       # PostgreSQL 16 + PostGIS 3.4 container configuration
 ├── AGENT.md                 # Agentic AI guidelines & architecture
 ├── go.mod
 ├── go.sum
@@ -45,10 +44,11 @@ be-explore-maptalks/
 | --- | --- | --- |
 | **Language** | Go (Golang) 1.22+ | Statically typed, high throughput, low memory footprint, ideal for real-time tactical streaming. |
 | **HTTP Routing** | Standard library `net/http` | Native pattern routing (`"GET /api/v1/entities/{id}"`) without bloated third-party dependencies. |
-| **Database** | SQLite via `modernc.org/sqlite` | Pure Go implementation: 100% portable, requires **no CGO** and **no C compiler (gcc)** on Windows/Linux/macOS. |
-| **Persistence Mode** | Write-Ahead Logging (WAL) | High concurrency read/write without database locking bottlenecks. |
+| **Database** | PostgreSQL 16 + PostGIS 3.4 | Enterprise military & maritime standard for geospatial data; native `GEOGRAPHY(Point, 4326)`. |
+| **Spatial Index** | GIST (Generalized Search Tree) | High-speed R-Tree proximity search and geofencing calculation. |
+| **Database Driver** | `github.com/lib/pq` | Lightweight, battle-tested PostgreSQL driver for Go `database/sql`. |
 | **Testing** | Standard `testing` + `httptest` | Fast, colocated unit and integration tests with zero external test runners. |
-| **API Protocol** | REST JSON + Protobuf Contract | Zero-friction standalone evaluation for reviewers; includes `proto/entity.proto` for enterprise gRPC-Web parity. |
+| **API Protocol** | REST JSON + Protobuf Contract | Zero-friction evaluation; includes `proto/entity.proto` for enterprise gRPC-Web parity. |
 
 ---
 
@@ -76,4 +76,3 @@ Before declaring any change complete:
 - [ ] `go test -v ./...` executes and passes all test suites.
 - [ ] New functionality includes colocated `*_test.go` covering edge cases.
 - [ ] Documentation (`README.md`, `AGENT.md`) reflects any API changes.
-

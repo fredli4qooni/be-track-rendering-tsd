@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: tsd_postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tsd_db
+      POSTGRES_USER: tsd_user
+      POSTGRES_PASSWORD: tsd_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - tsd_postgis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsd_user -d tsd_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tsd_postgis_data:
